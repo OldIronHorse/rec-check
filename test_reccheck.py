@@ -2,8 +2,6 @@
 
 from reccheck import Mux,muxes_from_path,Service,service_from_JSON
 from reccheck import services_from_mux,services_from_path
-from reccheck import rm
-import mock
 import unittest
 
 class TestMultiplex(unittest.TestCase):
@@ -33,11 +31,6 @@ class TestService(unittest.TestCase):
                       Service('s2','m1','BBC Two'),
                       Service('s3','m2','ITV')},
                      set(services))
-
-  @mock.patch('reccheck.os')
-  def test_rm(self,mock_os):
-    rm("any path")
-    mock_os.remove.assert_called_with("any path")
 
 
 if '__main__'==__name__:

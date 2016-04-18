@@ -3,10 +3,7 @@
 from collections import namedtuple
 import json
 import glob
-
 import os
-def rm(path):
-  os.remove(path)
 
 Service=namedtuple("Service",["service_id","mux_id","name"])
 Mux=namedtuple('Mux',['mux_id','path'])
