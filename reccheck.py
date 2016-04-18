@@ -6,18 +6,11 @@ import glob
 import os
 
 Service=namedtuple("Service",["service_id","mux_id","name"])
-Mux=namedtuple('Mux',['mux_id','path'])
+Programme=namedtuple('Programme',["name","service_id","start","end"])
 
 def service_from_JSON(service_id,mux_id,json_text):
   values=json.loads(json_text)
   return Service(service_id,mux_id,values['svcname'])
-
-def muxes_from_path(path):
-  muxes=[]
-  for p in glob.iglob(os.path.join(path,
-                      'tvheadend/input/dvb/networks/*/muxes/*')):
-    muxes.append(os.path.basename(p))
-  return muxes
 
 def services_from_mux(path):
   services=[]

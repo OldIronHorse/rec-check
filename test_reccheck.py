@@ -1,14 +1,8 @@
 #!/usr/bin/python
 
-from reccheck import Mux,muxes_from_path,Service,service_from_JSON
+from reccheck import Service,service_from_JSON
 from reccheck import services_from_mux,services_from_path
 import unittest
-
-class TestMultiplex(unittest.TestCase):
-  def test_muxes_from_path(self):
-    muxes=muxes_from_path('test_data/mux_from_dir')
-    self.assertEqual({'m1','m2','m3','m4'},set(muxes))
-
 
 class TestService(unittest.TestCase):
   def test_service_from_JSON(self):
