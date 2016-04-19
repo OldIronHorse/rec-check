@@ -4,10 +4,11 @@ from collections import namedtuple
 import json
 import glob
 import os
+import sys
 from datetime import datetime
 from pytz import timezone
 
-london=timezone('Europe/London')
+tz_london=timezone('Europe/London')
 
 Service=namedtuple("Service",["service_id","mux_id","name"])
 Programme=namedtuple('Programme',["title","channel","start","stop"])
@@ -35,8 +36,8 @@ def services_from_path(path):
 def programme_from_JSON(json_text):
   values=json.loads(json_text)
   return Programme(values['title']['eng'],values['channel'],
-                   london.localize(datetime.fromtimestamp(values['start'])),
-                   london.localize(datetime.fromtimestamp(values['stop'])))
+                   tz_london.localize(datetime.fromtimestamp(values['start'])),
+                   tz_london.localize(datetime.fromtimestamp(values['stop'])))
 
 #TODO: simplify this?
 def is_clashing(prog1,prog2):
@@ -44,3 +45,36 @@ def is_clashing(prog1,prog2):
          prog2.stop>=prog1.start and prog2.stop<=prog1.stop or\
          prog1.start>=prog2.start and prog1.start<=prog2.stop or\
          prog1.stop>=prog2.start and prog1.stop<=prog2.stop
+
+if __name__=='__main__':
+  #TODO: commandline arguments? .hts path?
+  hts_root='/home/hts/.hts'
+  #load programmes
+  programmes=[]
+  for prog_path in glob.iglob(os.path.join(hts_root,'tvheadend/dvr/log/*')):
+    with open(prog_path) as prog_file:
+      programmes.append(programme_from_JSON(prog_file.read()))
+  #filter passed events
+  now=tz_london.localize(datetime.now())
+  programmes=filter(lambda prog: prog.stop>now,programmes)
+  print '{0} recordings scheduled.'.format(len(programmes))
+  #find time clashes
+  clashes=[]
+  for i in range(len(programmes)):
+    clashes+=map(lambda prog: (programmes[i],prog),
+                 filter(lambda prog: is_clash(programmes[i],prog),
+                        programmes[i:]))
+  #exit if no clashes
+  if not clashes:
+    print "No clashes."
+    sys.exit(0)
+  #load services
+  services_by_id={service_id: service
+                  for service in services_from_path(hts_root)}
+  #filter for multiplex clashes
+  clashes=filter(lambda (p1,p2): services_by_id[p1.channel].multiplex!=services_by_id[p2.channel].multiplex, clashes)
+  #report and exit
+  print "There are {0} clash(es)".format(len(clashes))
+  print clashes
+  #TODO: visulisation of scheduled recordings?
+  sys.exit(len(clashes))
