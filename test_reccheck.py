@@ -2,8 +2,9 @@
 
 from reccheck import Service,service_from_JSON
 from reccheck import services_from_mux,services_from_path
-from reccheck import Programme,programme_from_JSON,is_clashing
+from reccheck import Programme,programme_from_JSON,is_clashing,filter_passed
 import unittest
+from mock import patch
 from datetime import datetime
 from pytz import timezone
 
@@ -147,6 +148,54 @@ class TestIsClashhing(unittest.TestCase):
                  stop=self.london.localize(datetime(hour=22,minute=20,
                                                     day=19,month=4, year=2016)))
     self.assertTrue(is_clashing(p1,p2))
+
+  def test_filter_passed_empty(self):
+    self.assertEqual([],filter_passed([]))
+
+  @patch('reccheck.datetime')
+  def test_filter_passed_all_passed(self,mock_dt):
+    mock_dt.now.return_value=datetime(hour=17,day=17,month=9,year=2017)
+    self.assertEqual([],
+        filter_passed([Programme(title="prog1",channel="c1",
+                                 start=self.london.localize(
+                                    datetime(hour=21,day=19,month=4,year=2017)),
+                                 stop=self.london.localize(
+                                    datetime(hour=22,minute=40,
+                                             day=19,month=4, year=2017))),
+                       Programme(title="prog2",channel="c2",
+                                 start=self.london.localize(
+                                    datetime(hour=9,
+                                             day=19,month=4,year=2017)),
+                                 stop=self.london.localize(
+                                    datetime(hour=10,minute=40,
+                                             day=19,month=4, year=2017)))]))
+
+  @patch('reccheck.datetime')
+  def test_filter_passed_one_passed(self,mock_dt):
+    mock_dt.now.return_value=datetime(hour=17,day=20,month=4,year=2017)
+    self.assertEqual([Programme(title="prog2",channel="c2",
+                                start=self.london.localize(
+                                   datetime(hour=9,
+                                            day=21,month=4,year=2017)),
+                                stop=self.london.localize(
+                                   datetime(hour=10,minute=40,
+                                            day=21,month=4, year=2017)))],
+        filter_passed([Programme(title="prog1",channel="c1",
+                                 start=self.london.localize(
+                                    datetime(hour=21,
+                                             day=19,month=4,year=2017)),
+                                 stop=self.london.localize(
+                                    datetime(hour=22,minute=40,
+                                             day=19,month=4, year=2017))),
+                       Programme(title="prog2",channel="c2",
+                                 start=self.london.localize(
+                                    datetime(hour=9,
+                                             day=21,month=4,year=2017)),
+                                 stop=self.london.localize(
+                                    datetime(hour=10,minute=40,
+                                             day=21,month=4, year=2017)))]))
+
+  #TODO: other filter tests
 
 
 if '__main__'==__name__:

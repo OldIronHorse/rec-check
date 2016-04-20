@@ -39,6 +39,10 @@ def programme_from_JSON(json_text):
                    tz_london.localize(datetime.fromtimestamp(values['start'])),
                    tz_london.localize(datetime.fromtimestamp(values['stop'])))
 
+def filter_passed(programmes):
+  now=tz_london.localize(datetime.now())
+  return filter(lambda p: p.stop>now,programmes)
+
 #TODO: simplify this?
 def is_clashing(prog1,prog2):
   return prog2.start>=prog1.start and prog2.start<=prog1.stop or\
@@ -47,7 +51,7 @@ def is_clashing(prog1,prog2):
          prog1.stop>=prog2.start and prog1.stop<=prog2.stop
 
 if __name__=='__main__':
-  #TODO: commandline arguments? .hts path?
+  #TODO: commandline arguments? .hts path? -V for visualise? 
   hts_root='/home/hts/.hts'
   #load programmes
   programmes=[]
