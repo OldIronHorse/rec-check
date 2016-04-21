@@ -59,9 +59,8 @@ if __name__=='__main__':
     with open(prog_path) as prog_file:
       programmes.append(programme_from_JSON(prog_file.read()))
   #filter passed events
-  now=tz_london.localize(datetime.now())
-  programmes=filter(lambda prog: prog.stop>now,programmes)
-  print '{0} recordings scheduled.'.format(len(programmes))
+  programmes=filter_passed(programmes)
+  print '{0} recording(s) scheduled.'.format(len(programmes))
   #find time clashes
   clashes=[]
   for i in range(len(programmes)):
