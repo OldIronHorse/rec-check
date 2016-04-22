@@ -43,6 +43,14 @@ def filter_passed(programmes):
   now=tz_london.localize(datetime.now())
   return filter(lambda p: p.stop>now,programmes)
 
+def get_time_clashes(programmes):
+  clashes=[]
+  for i in range(len(programmes)):
+    clashes+=map(lambda prog: (programmes[i],prog),
+                 filter(lambda prog: is_clashing(programmes[i],prog),
+                        programmes[i+1:]))
+  return clashes
+
 #TODO: simplify this?
 def is_clashing(prog1,prog2):
   return prog2.start>=prog1.start and prog2.start<=prog1.stop or\
@@ -62,11 +70,7 @@ if __name__=='__main__':
   programmes=filter_passed(programmes)
   print '{0} recording(s) scheduled.'.format(len(programmes))
   #find time clashes
-  clashes=[]
-  for i in range(len(programmes)):
-    clashes+=map(lambda prog: (programmes[i],prog),
-                 filter(lambda prog: is_clash(programmes[i],prog),
-                        programmes[i:]))
+  clashes=get_time_clashes(programmes)
   #exit if no clashes
   if not clashes:
     print "No clashes."

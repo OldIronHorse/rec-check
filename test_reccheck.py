@@ -3,6 +3,7 @@
 from reccheck import Service,service_from_JSON
 from reccheck import services_from_mux,services_from_path
 from reccheck import Programme,programme_from_JSON,is_clashing,filter_passed
+from reccheck import get_time_clashes
 import unittest
 from mock import patch
 from datetime import datetime
@@ -152,6 +153,11 @@ class TestIsClashhing(unittest.TestCase):
   def test_filter_passed_empty(self):
     self.assertEqual([],filter_passed([]))
 
+
+class TestFilterPassed(unittest.TestCase):
+  def setUp(self):
+    self.london=timezone('Europe/London')
+
   @patch('reccheck.datetime')
   def test_filter_passed_all_passed(self,mock_dt):
     mock_dt.now.return_value=datetime(hour=17,day=17,month=9,year=2017)
@@ -193,7 +199,44 @@ class TestIsClashhing(unittest.TestCase):
                                              day=21,month=4,year=2017)),
                                  stop=self.london.localize(
                                     datetime(hour=10,minute=40,
-                                             day=21,month=4, year=2017)))]))
+                                             day=21,month=4,year=2017)))]))
+
+class TestGetTimeClashes(unittest.TestCase):
+  def setUp(self):
+    self.london=timezone('Europe/London')
+
+  def test_empty(self):
+    self.assertEqual([],get_time_clashes([]))
+
+  def test_2_progs_no_clash(self):
+    self.assertEqual([],
+                     get_time_clashes([Programme(title="prog1",channel="c1",
+                                                 start=self.london.localize(
+                                                    datetime(hour=21,
+                                                    day=19,month=4,year=2017)),
+                                                 stop=self.london.localize(
+                                                    datetime(hour=22,minute=40,
+                                                    day=19,month=4,year=2017))),
+                                       Programme(title="prog2",channel="c2",
+                                                 start=self.london.localize(
+                                                    datetime(hour=9,
+                                                    day=21,month=4,year=2017)),
+                                                 stop=self.london.localize(
+                                                    datetime(hour=10,minute=40,
+                                                    day=21,month=4,year=2017)))]))
+
+  def test_2_progs_1_clash(self):
+    p1=Programme(title="prog1",channel="c1",
+                 start=self.london.localize(datetime(hour=21,
+                                                     day=19,month=4,year=2017)),
+                 stop=self.london.localize(datetime(hour=22,minute=40,
+                                                    day=19,month=4,year=2017)))
+    p2=Programme(title="prog2",channel="c2",
+                 start=self.london.localize(datetime(hour=21,minute=30,
+                                                     day=19,month=4,year=2017)),
+                 stop=self.london.localize(datetime(hour=23,minute=40,
+                                                    day=19,month=4,year=2017)))
+    self.assertEqual([(p1,p2)],get_time_clashes([p1,p2]))
 
   #TODO: other filter tests
 
