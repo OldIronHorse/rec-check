@@ -51,6 +51,10 @@ def get_time_clashes(programmes):
                         programmes[i+1:]))
   return clashes
 
+def get_multiplex_clashes(clashes, services_by_id):
+  return filter(lambda (p1,p2):\
+      services_by_id[p1.channel].mux_id!=services_by_id[p2.channel].mux_id, clashes)
+
 #TODO: simplify this?
 def is_clashing(prog1,prog2):
   return prog2.start>=prog1.start and prog2.start<=prog1.stop or\
@@ -79,7 +83,7 @@ if __name__=='__main__':
   services_by_id={service_id: service
                   for service in services_from_path(hts_root)}
   #filter for multiplex clashes
-  clashes=filter(lambda (p1,p2): services_by_id[p1.channel].multiplex!=services_by_id[p2.channel].multiplex, clashes)
+  clashes=get_multiplex_clashes(clashes,services_by_id)
   #report and exit
   print "There are {0} clash(es)".format(len(clashes))
   print clashes

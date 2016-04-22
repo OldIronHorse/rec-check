@@ -3,7 +3,7 @@
 from reccheck import Service,service_from_JSON
 from reccheck import services_from_mux,services_from_path
 from reccheck import Programme,programme_from_JSON,is_clashing,filter_passed
-from reccheck import get_time_clashes
+from reccheck import get_time_clashes,get_multiplex_clashes
 import unittest
 from mock import patch
 from datetime import datetime
@@ -238,6 +238,29 @@ class TestGetTimeClashes(unittest.TestCase):
                                                     day=19,month=4,year=2017)))
     self.assertEqual([(p1,p2)],get_time_clashes([p1,p2]))
 
+
+class TestGetMultiplexClashes(unittest.TestCase):
+  def setUp(self):
+    self.london=timezone('Europe/London')
+    self.services_by_id={'s1': Service('s1','m1','BBC One'),
+                         's2': Service('s2','m1','BBC Two'),
+                         's3': Service('s3','m2','ITV')}
+
+  def test_empty(self):
+    self.assertEqual([],get_multiplex_clashes([],self.services_by_id))
+
+  def test_same_multiplex(self):
+    p1=Programme(title='prog1',channel='s1',start=None,stop=None)
+    p2=Programme(title='prog2',channel='s2',start=None,stop=None)
+    self.assertEqual([],
+                     get_multiplex_clashes([(p1,p2)],
+                                           self.services_by_id))
+
+  def test_different_multiplex(self):
+    p1=Programme(title='prog1',channel='s1',start=None,stop=None)
+    p2=Programme(title='prog2',channel='s3',start=None,stop=None)
+    self.assertEqual([(p1,p2)],
+                     get_multiplex_clashes([(p1,p2)],self.services_by_id))
   #TODO: other filter tests
 
 
