@@ -15,7 +15,10 @@ Programme=namedtuple('Programme',["title","channel","start","stop"])
 
 def service_from_JSON(service_id,mux_id,json_text):
   values=json.loads(json_text)
-  return Service(service_id,mux_id,values['svcname'])
+  try:
+    return Service(service_id,mux_id,values['svcname'])
+  except(KeyError):
+    return Service(service_id,mux_id,'None')
 
 def services_from_mux(path):
   services=[]
@@ -80,9 +83,11 @@ if __name__=='__main__':
     print "No clashes."
     sys.exit(0)
   #load services
-  services_by_id={service_id: service
+  services_by_id={service.service_id: service
                   for service in services_from_path(hts_root)}
   #filter for multiplex clashes
+  print 'clashes:', clashes
+  print 'services_by_id:', services_by_id
   clashes=get_multiplex_clashes(clashes,services_by_id)
   #report and exit
   print "There are {0} clash(es)".format(len(clashes))
